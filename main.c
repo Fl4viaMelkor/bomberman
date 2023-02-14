@@ -15,6 +15,7 @@ int main(void)
     // Carregar a imagem que contém todos os frames do sprite
     Texture2D spriteSheet = LoadTexture("./sprites/sprt_hero/satyr-Sheet (2).png");
     Texture2D spriteCorrendo = LoadTexture("./sprites/sprt_hero/satyr-Sheet.png");
+    Texture2D tileset = LoadTexture("./sprites/sprt_parede.png");
 
     //Inimigo teste
     Vector2 ballSpeed = { 5.0f, 4.0f };
@@ -24,6 +25,7 @@ int main(void)
     // Definir o tamanho do retângulo para cada frame
     Rectangle frameRec = { 0.0f, 0.0f, (float)spriteSheet.width/6, (float)spriteSheet.height/6 };
     Rectangle frameCorrendo = { 32, 32, (float)spriteCorrendo.width/9, (float)spriteCorrendo.height/6 };
+    Rectangle Parede={0.0f,0.0f,(float)tileset.width,(float)tileset.height};
 
     // Definir a posição inicial do sprite na tela
     Vector2 position = { screenWidth/2, screenHeight/2 };
