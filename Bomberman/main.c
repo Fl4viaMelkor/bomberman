@@ -14,15 +14,20 @@
 #define ALTURAMAPA NCOLUNAS*50
 #define CORMAPA GREEN
 
+//BLOCOS
+#define NBLOCOS ((NLINHAS-1)/2) * ((NCOLUNAS-1)/2) + 1
+#define TAMANHOBLOCOS 50
+#define CORBLOCOS GRAY
+
 //BOMBERMAN
-#define LARGURABOMBERMAN 50
-#define ALTURABOMBERMAN 50
-#define VELBOMBERMAN 2.5f
+#define LARGURABOMBERMAN 40
+#define ALTURABOMBERMAN 40
+#define VELBOMBERMAN 2.0f
 #define CORBOMBERMAN BROWN
 
 //INIMIGOS
-#define TAMANHOINIMIGO 25
-#define VELINIMIGO 2.5f
+#define TAMANHOINIMIGO 20
+#define VELINIMIGO 2.0f
 #define CORINIMIGO RED
 #define NINIMIGOS 3
 
@@ -119,28 +124,95 @@ int checaColisaoBombermanInimigos(INIMIGO listaInimigos[], int ninimigos, Rectan
 
 }
 
-void movimentaBomberman(BOMBERMAN *bomberman, MAPA mapa)
+int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int direcao)
+{
+    int l = 0, blockDirec[NDIRECOES] = {};
+    while(l < NBLOCOS && blockDirec[direcao] == 0)
+    {
+        //Checando colisao com bloco a direita do Bomberman
+        if( (bombermanRet.x + bombermanRet.width) >= blocos[l].x
+           && bombermanRet.x < blocos[l].x
+           && ( ( bombermanRet.y < ((blocos[l].y + TAMANHOBLOCOS)-1)
+                 && bombermanRet.y > (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1) )
+               || ( ( bombermanRet.y < (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) < ((blocos[l].y + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[dir] = 1;
+        }
+
+        //Checando colisao com bloco a esquerda do Bomberman
+        if( bombermanRet.x <= (blocos[l].x + TAMANHOBLOCOS)
+           && (bombermanRet.x + bombermanRet.width) > (blocos[l].x + TAMANHOBLOCOS)
+           && ( ( bombermanRet.y < ((blocos[l].y + TAMANHOBLOCOS)-1)
+                 && bombermanRet.y > (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1) )
+               || ( ( bombermanRet.y < (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1)
+                 && (bombermanRet.y + bombermanRet.height) < ((blocos[l].y + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[esq] = 1;
+        }
+
+        //Checando colisao com bloco acima do Bomberman
+        if( bombermanRet.y <= (blocos[l].y + TAMANHOBLOCOS)
+           && (bombermanRet.y + bombermanRet.height) > (blocos[l].y + TAMANHOBLOCOS)
+           && ( ( bombermanRet.x < ((blocos[l].x + TAMANHOBLOCOS)-1)
+                 && bombermanRet.x > (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1) )
+               || ( ( bombermanRet.x < (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) < ((blocos[l].x + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[cima] = 1;
+        }
+
+        //Checando colisao com bloco abaixo do Bomberman
+        if( (bombermanRet.y + bombermanRet.height) >= blocos[l].y
+           && bombermanRet.y < blocos[l].y
+           && ( ( bombermanRet.x < ((blocos[l].x + TAMANHOBLOCOS)-1)
+                 && bombermanRet.x > (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1) )
+               || ( ( bombermanRet.x < (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1)
+                 && (bombermanRet.x + bombermanRet.width) < ((blocos[l].x + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[baixo] = 1;
+        }
+        l++;
+    }
+    //Retorna 1 caso a direcao escolhida esteja bloqueada por um bloco
+    if(l < NBLOCOS)
+    {
+        return 1;
+    }
+    return 0;
+
+}
+
+void movimentaBomberman(BOMBERMAN *bomberman, MAPA mapa, Rectangle blocos[], Rectangle bombermanRet)
 {
     //Andar para a direita
-    if( (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) && (bomberman->pos.x < (GetScreenWidth() - mapa.pos.x - bomberman->tamanho.x)) )
+    if( (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) && (bomberman->pos.x < (GetScreenWidth() - mapa.pos.x - bomberman->tamanho.x)) && !checaColisaoBombermanBlocos(blocos, bombermanRet, dir) )
     {
         bomberman->pos.x += VELBOMBERMAN;
     }
 
     //Andar para a esquerda
-    if( (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) && (bomberman->pos.x > mapa.pos.x) )
+    if( (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) && (bomberman->pos.x > mapa.pos.x) && !checaColisaoBombermanBlocos(blocos,bombermanRet, esq) )
     {
         bomberman->pos.x -= VELBOMBERMAN;
     }
 
     //Andar para cima
-    if( (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) && (bomberman->pos.y > mapa.pos.y) )
+    if( (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) && (bomberman->pos.y > mapa.pos.y)  && !checaColisaoBombermanBlocos(blocos,bombermanRet, cima) )
     {
         bomberman->pos.y -= VELBOMBERMAN;
     }
 
     //Andar para baixo
-    if( (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) && (bomberman->pos.y < (GetScreenHeight() - mapa.pos.y - bomberman->tamanho.y)) )
+    if( (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) && (bomberman->pos.y < (GetScreenHeight() - mapa.pos.y - bomberman->tamanho.y)) && !checaColisaoBombermanBlocos(blocos,bombermanRet, baixo) )
     {
         bomberman->pos.y += VELBOMBERMAN;
     }
@@ -148,7 +220,7 @@ void movimentaBomberman(BOMBERMAN *bomberman, MAPA mapa)
 
 void movimentaInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa)
 {
-    int l, c=0, direcao_al, blockDirec[NDIRECOES] = {};
+    int l, direcao_al, blockDirec[NDIRECOES] = {};
     for(l = 0; l < ninimigos; l++)
     {
         //Checando colisao na borda da direita
@@ -200,6 +272,34 @@ void movimentaInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa)
     }
 }
 
+void geraBlocos(Rectangle blocos[NBLOCOS], MAPA mapa)
+{
+    int l=0, linha = TAMANHOBLOCOS, coluna = TAMANHOBLOCOS;
+    while( l < NBLOCOS && mapa.pos.y + coluna < (GetScreenHeight() - mapa.pos.y - TAMANHOBLOCOS) )
+    {
+        blocos[l].height = TAMANHOBLOCOS;
+        blocos[l].width = TAMANHOBLOCOS;
+        blocos[l].x = mapa.pos.x + linha;
+        blocos[l].y = mapa.pos.y + coluna;
+        linha += TAMANHOBLOCOS*2;
+        if( mapa.pos.x + linha >= (GetScreenWidth() - mapa.pos.x - TAMANHOBLOCOS) )
+        {
+            linha = TAMANHOBLOCOS;
+            coluna += TAMANHOBLOCOS*2;
+        }
+        l++;
+    }
+}
+
+void desenhaBlocos(Rectangle blocos[NBLOCOS])
+{
+    int l;
+    for(l = 0; l < NBLOCOS; l++)
+    {
+        DrawRectangle(blocos[l].x, blocos[l].y, blocos[l].width, blocos[l].height, CORBLOCOS);
+    }
+}
+
 int main(void)
 {
 
@@ -215,10 +315,16 @@ int main(void)
         MAPA mapa = {
             {
                 ((GetScreenWidth() - LARGURAMAPA)/2),
-                ((GetScreenHeight() -1 - ALTURAMAPA)/2)
+                ((GetScreenHeight() - ALTURAMAPA)/2)
             },
-            { LARGURAMAPA, ALTURAMAPA+2 }
+            { LARGURAMAPA, ALTURAMAPA }
         };
+
+        //--------------------------------------------------------------------------------------
+
+        //define os blocos nao quebraveis do mapa
+        Rectangle blocos[NBLOCOS];
+        geraBlocos(blocos, mapa);
 
         //--------------------------------------------------------------------------------------
 
@@ -257,7 +363,7 @@ int main(void)
             //----------------------------------------------------------------------------------
 
                 //movimenta o Bomberman a partir do teclado
-                movimentaBomberman(&bomberman, mapa);
+                movimentaBomberman(&bomberman, mapa, blocos, bombermanRet);
 
                 //Atualiza a posicao da estrutura retangulo do Bomberman (bombermanRet)
                 bombermanRet.x = bomberman.pos.x;
@@ -278,6 +384,9 @@ int main(void)
 
                     //Desenha o mapa
                     DrawRectangleV(mapa.pos, mapa.tamanho, CORMAPA);
+
+                    //Desenha os blocos
+                    desenhaBlocos(blocos);
 
                     //Desenha o texto da parte superior da tela
                     DrawText("Mova o quadrado com as setas do seu teclado e fuja do inimigo", 10, 10, 20, CORINSTRUCAO);
