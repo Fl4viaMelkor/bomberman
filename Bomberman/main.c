@@ -1,38 +1,38 @@
 #include "raylib.h"
 
 //LINHAS E COLUNAS
-#define NLINHAS 21
-#define NCOLUNAS 11
-
-//TELA
-#define LARGURATELA (NLINHAS*50)+100
-#define ALTURATELA (NCOLUNAS*50)+100
-#define CORFUNDO DARKGRAY
-
-//MAPA
-#define LARGURAMAPA NLINHAS*50
-#define ALTURAMAPA NCOLUNAS*50
-#define CORMAPA GREEN
+#define NLINHAS 27
+#define NCOLUNAS 15
 
 //BLOCOS
 #define NBLOCOS ((NLINHAS-1)/2) * ((NCOLUNAS-1)/2) + 1
-#define TAMANHOBLOCOS 50
+#define TAMANHOBLOCOS 40
 #define CORBLOCOS GRAY
 
+//TELA
+#define LARGURATELA (NLINHAS*TAMANHOBLOCOS) + (TAMANHOBLOCOS*2)
+#define ALTURATELA (NCOLUNAS*TAMANHOBLOCOS) + (TAMANHOBLOCOS*2)
+#define CORFUNDO DARKGRAY
+
+//MAPA
+#define LARGURAMAPA NLINHAS*TAMANHOBLOCOS
+#define ALTURAMAPA NCOLUNAS*TAMANHOBLOCOS
+#define CORMAPA GREEN
+
 //BOMBERMAN
-#define LARGURABOMBERMAN 40
-#define ALTURABOMBERMAN 40
-#define VELBOMBERMAN 2.0f
+#define LARGURABOMBERMAN 30
+#define ALTURABOMBERMAN 30
+#define VELBOMBERMAN 1.5f
 #define CORBOMBERMAN BROWN
 
 //INIMIGOS
-#define TAMANHOINIMIGO 20
-#define VELINIMIGO 2.0f
+#define TAMANHOINIMIGO 17
+#define VELINIMIGO 1.5f
 #define CORINIMIGO RED
 #define NINIMIGOS 3
 
 //PASSOS
-#define MIN_PASSOS 10
+#define MIN_PASSOS 20
 #define MAX_PASSOS 100
 
 //INSTRUCOES
@@ -40,6 +40,9 @@
 
 //DIRECOES
 #define NDIRECOES 4
+
+//FPS
+#define FPS 60
 
 //OUTROS
 #define INVERTE -1
@@ -94,16 +97,38 @@ void geraVelInimigo(INIMIGO *inimigo)
     }
 }
 
-void geraInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa)
+int verficaPosInimigoBlocos(Rectangle blocos[], int posx_al, int posy_al)
 {
-    int l, direcao_al;
+    int l;
+    for(l = 0; l < NBLOCOS; l++)
+    {
+        if( (posx_al > blocos[l].x && posx_al < (blocos[l].x + TAMANHOBLOCOS))
+           || ((posx_al + TAMANHOINIMIGO) > blocos[l].x && (posx_al + TAMANHOINIMIGO) < (blocos[l].x + TAMANHOBLOCOS))
+           || (posy_al > blocos[l].y && posy_al < (blocos[l].y + TAMANHOBLOCOS))
+           || ((posy_al + TAMANHOINIMIGO) > blocos[l].y && (posy_al + TAMANHOINIMIGO) < (blocos[l].y + TAMANHOBLOCOS)) )
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void geraInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa, Rectangle blocos[])
+{
+    int l, direcao_al, posx_al, posy_al;
     for(l = 0; l < ninimigos; l++)
     {
         direcao_al = GetRandomValue(0, NDIRECOES-1);
         listaInimigos[l].dir = direcao_al;
         geraVelInimigo(&listaInimigos[l]);
-        listaInimigos[l].pos.x = GetRandomValue(TAMANHOINIMIGO + mapa.pos.x, (GetScreenWidth() - mapa.pos.x - TAMANHOINIMIGO));
-        listaInimigos[l].pos.y = GetRandomValue(TAMANHOINIMIGO + mapa.pos.y, (GetScreenHeight() - mapa.pos.y - TAMANHOINIMIGO));
+        posx_al = GetRandomValue(TAMANHOINIMIGO + mapa.pos.x, (GetScreenWidth() - mapa.pos.x - TAMANHOINIMIGO));
+        posy_al = GetRandomValue(TAMANHOINIMIGO + mapa.pos.y, (GetScreenHeight() - mapa.pos.y - TAMANHOINIMIGO));
+        while(verficaPosInimigoBlocos(blocos, posx_al, posy_al)){
+            posx_al = GetRandomValue(TAMANHOINIMIGO + mapa.pos.x, (GetScreenWidth() - mapa.pos.x - TAMANHOINIMIGO));
+            posy_al = GetRandomValue(TAMANHOINIMIGO + mapa.pos.y, (GetScreenHeight() - mapa.pos.y - TAMANHOINIMIGO));
+        }
+        listaInimigos[l].pos.x = posx_al;
+        listaInimigos[l].pos.y = posy_al;
         listaInimigos[l].passos = 0;
         listaInimigos[l].passosMax = GetRandomValue(MIN_PASSOS, MAX_PASSOS);
     }
@@ -133,7 +158,7 @@ int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int 
         if( (bombermanRet.x + bombermanRet.width) >= blocos[l].x
            && bombermanRet.x < blocos[l].x
            && ( ( bombermanRet.y < ((blocos[l].y + TAMANHOBLOCOS)-1)
-                 && bombermanRet.y > (blocos[l].y+1)
+                 && bombermanRet.y > (blocos[l].y)
                  && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1) )
                || ( ( bombermanRet.y < (blocos[l].y+1)
                  && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1)
@@ -146,7 +171,7 @@ int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int 
         if( bombermanRet.x <= (blocos[l].x + TAMANHOBLOCOS)
            && (bombermanRet.x + bombermanRet.width) > (blocos[l].x + TAMANHOBLOCOS)
            && ( ( bombermanRet.y < ((blocos[l].y + TAMANHOBLOCOS)-1)
-                 && bombermanRet.y > (blocos[l].y+1)
+                 && bombermanRet.y > (blocos[l].y)
                  && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1) )
                || ( ( bombermanRet.y < (blocos[l].y+1)
                  && (bombermanRet.y + bombermanRet.height) > (blocos[l].y+1)
@@ -159,7 +184,7 @@ int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int 
         if( bombermanRet.y <= (blocos[l].y + TAMANHOBLOCOS)
            && (bombermanRet.y + bombermanRet.height) > (blocos[l].y + TAMANHOBLOCOS)
            && ( ( bombermanRet.x < ((blocos[l].x + TAMANHOBLOCOS)-1)
-                 && bombermanRet.x > (blocos[l].x+1)
+                 && bombermanRet.x > (blocos[l].x)
                  && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1) )
                || ( ( bombermanRet.x < (blocos[l].x+1)
                  && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1)
@@ -172,7 +197,7 @@ int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int 
         if( (bombermanRet.y + bombermanRet.height) >= blocos[l].y
            && bombermanRet.y < blocos[l].y
            && ( ( bombermanRet.x < ((blocos[l].x + TAMANHOBLOCOS)-1)
-                 && bombermanRet.x > (blocos[l].x+1)
+                 && bombermanRet.x > (blocos[l].x)
                  && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1) )
                || ( ( bombermanRet.x < (blocos[l].x+1)
                  && (bombermanRet.x + bombermanRet.width) > (blocos[l].x+1)
@@ -218,31 +243,124 @@ void movimentaBomberman(BOMBERMAN *bomberman, MAPA mapa, Rectangle blocos[], Rec
     }
 }
 
-void movimentaInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa)
+int verificaLinhaColunaValidas(Rectangle blocos[], INIMIGO inimigo, int direcao)
+{
+    int l=0, blockDirec[NDIRECOES] = {};
+    while( l < NBLOCOS &&  blockDirec[direcao] == 0)
+    {
+        //Checando se tem algum bloco na mesma linha do Inimigo
+        if( ( ( (inimigo.pos.y - TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.y - TAMANHOINIMIGO) > (blocos[l].y) )
+               || ( ( (inimigo.pos.y + TAMANHOINIMIGO) > (blocos[l].y+1)
+                 && (inimigo.pos.y + TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[dir] = 1;
+            blockDirec[esq] = 1;
+        }
+
+        //Checando colisao com bloco a esquerda do Bomberman
+        if( ( ( (inimigo.pos.x - TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.x - TAMANHOINIMIGO) > (blocos[l].x) )
+               || ( ( (inimigo.pos.x + TAMANHOINIMIGO) > (blocos[l].x+1)
+                 && (inimigo.pos.x + TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[cima] = 1;
+            blockDirec[baixo] = 1;
+        }
+        l++;
+    }
+    //Retorna 1 caso a direcao escolhida nao possa ser utilizada naquela linha/coluna
+    if(l < NBLOCOS)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
+{
+    int l = 0, blockDirec[NDIRECOES] = {};
+    while(l < NBLOCOS && blockDirec[direcao] == 0)
+    {
+        //Checando colisao com bloco a direita do Bomberman
+        if( (inimigo.pos.x + TAMANHOINIMIGO) >= blocos[l].x
+           && (inimigo.pos.x - TAMANHOINIMIGO) < blocos[l].x
+           && ( ( (inimigo.pos.y - TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.y - TAMANHOINIMIGO) > (blocos[l].y) )
+               || ( ( (inimigo.pos.y + TAMANHOINIMIGO) > (blocos[l].y+1)
+                 && (inimigo.pos.y + TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[dir] = 1;
+        }
+
+        //Checando colisao com bloco a esquerda do Bomberman
+        if( (inimigo.pos.x - TAMANHOINIMIGO) <= (blocos[l].x + TAMANHOBLOCOS)
+           && (inimigo.pos.x  + TAMANHOINIMIGO) > (blocos[l].x + TAMANHOBLOCOS)
+           && ( ( (inimigo.pos.y - TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.y - TAMANHOINIMIGO) > (blocos[l].y) )
+               || ( ( (inimigo.pos.y + TAMANHOINIMIGO) > (blocos[l].y+1)
+                 && (inimigo.pos.y + TAMANHOINIMIGO) < ((blocos[l].y + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[esq] = 1;
+        }
+
+        //Checando colisao com bloco acima do Bomberman
+        if( (inimigo.pos.y - TAMANHOINIMIGO) <= (blocos[l].y + TAMANHOBLOCOS)
+           && (inimigo.pos.y + TAMANHOINIMIGO) > (blocos[l].y + TAMANHOBLOCOS)
+           && ( ( (inimigo.pos.x - TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.x - TAMANHOINIMIGO) > (blocos[l].x) )
+               || ( ( (inimigo.pos.x + TAMANHOINIMIGO) > (blocos[l].x+1)
+                 && (inimigo.pos.x + TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[cima] = 1;
+        }
+
+        //Checando colisao com bloco abaixo do Bomberman
+        if( (inimigo.pos.y  + TAMANHOINIMIGO) >= blocos[l].y
+           && (inimigo.pos.y - TAMANHOINIMIGO) < blocos[l].y
+           && ( ( (inimigo.pos.x - TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1)
+                 && (inimigo.pos.x - TAMANHOINIMIGO) > (blocos[l].x) )
+               || ( ( (inimigo.pos.x + TAMANHOINIMIGO) > (blocos[l].x+1)
+                 && (inimigo.pos.x + TAMANHOINIMIGO) < ((blocos[l].x + TAMANHOBLOCOS)-1) ) ) ) )
+        {
+            blockDirec[baixo] = 1;
+        }
+        l++;
+    }
+    //Retorna 1 caso a direcao escolhida esteja bloqueada por um bloco
+    if(l < NBLOCOS)
+    {
+        return 1;
+    }
+    return 0;
+
+}
+
+void movimentaInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa, Rectangle blocos[])
 {
     int l, direcao_al, blockDirec[NDIRECOES] = {};
     for(l = 0; l < ninimigos; l++)
     {
         //Checando colisao na borda da direita
-        if( listaInimigos[l].pos.x >= (GetScreenWidth() - mapa.pos.x - TAMANHOINIMIGO) )
+        if( listaInimigos[l].pos.x >= (GetScreenWidth() - mapa.pos.x - TAMANHOINIMIGO) || checaColisaoInimigoBlocos(blocos, listaInimigos[l], dir) )
         {
             blockDirec[dir] = 1;
         }
 
         //Checando colisao na borda da esquerda
-        if( listaInimigos[l].pos.x <= (TAMANHOINIMIGO + mapa.pos.x) )
+        if( listaInimigos[l].pos.x <= (TAMANHOINIMIGO + mapa.pos.x) || checaColisaoInimigoBlocos(blocos, listaInimigos[l], esq) )
         {
             blockDirec[esq] = 1;
         }
 
         //Checando colisao na borda superior
-        if( listaInimigos[l].pos.y <= (TAMANHOINIMIGO + mapa.pos.y) )
+        if( listaInimigos[l].pos.y <= (TAMANHOINIMIGO + mapa.pos.y) || checaColisaoInimigoBlocos(blocos, listaInimigos[l], cima) )
         {
             blockDirec[cima] = 1;
         }
 
         //Andar para baixo
-        if( listaInimigos[l].pos.y >= (GetScreenHeight() - mapa.pos.y - TAMANHOINIMIGO) )
+        if( listaInimigos[l].pos.y >= (GetScreenHeight() - mapa.pos.y - TAMANHOINIMIGO) || checaColisaoInimigoBlocos(blocos, listaInimigos[l], baixo) )
         {
             blockDirec[baixo] = 1;
         }
@@ -251,7 +369,8 @@ void movimentaInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa)
         if( blockDirec[listaInimigos[l].dir] == 1 || listaInimigos[l].passos >= listaInimigos[l].passosMax )
         {
             direcao_al = GetRandomValue(0, NDIRECOES-1);
-            while(blockDirec[direcao_al] == 1)
+            //verifica se a direcao esta bloqueada ou nao esta em uma linha e/ou coluna valida
+            while( blockDirec[direcao_al] == 1 || verificaLinhaColunaValidas(blocos, listaInimigos[l], direcao_al) == 1 )
             {
                 direcao_al = GetRandomValue(0, NDIRECOES-1);
             }
@@ -307,7 +426,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
         InitWindow(LARGURATELA, ALTURATELA, "Bomberman");
-        SetTargetFPS(60);
+        SetTargetFPS(FPS);
 
         //--------------------------------------------------------------------------------------
 
@@ -331,7 +450,7 @@ int main(void)
         //define o BOMBERMAN e seus dados
         BOMBERMAN bomberman = {
             {
-                (GetScreenWidth()/2) - (LARGURABOMBERMAN/2),
+                (GetScreenWidth()/2) - (LARGURABOMBERMAN/2) + TAMANHOBLOCOS,
                 (GetScreenHeight()/2) - (ALTURABOMBERMAN/2),
             },
             { LARGURABOMBERMAN, ALTURABOMBERMAN }
@@ -347,7 +466,7 @@ int main(void)
         INIMIGO listaInimigos[NINIMIGOS];
 
         //gera os INIMIGOS
-        geraInimigos(listaInimigos, NINIMIGOS, mapa);
+        geraInimigos(listaInimigos, NINIMIGOS, mapa, blocos);
 
         //--------------------------------------------------------------------------------------
 
@@ -370,7 +489,7 @@ int main(void)
                 bombermanRet.y = bomberman.pos.y;
 
                 //Atualiza a posicao dos inimigos
-                movimentaInimigos(listaInimigos, NINIMIGOS, mapa);
+                movimentaInimigos(listaInimigos, NINIMIGOS, mapa, blocos);
 
             //----------------------------------------------------------------------------------
 
