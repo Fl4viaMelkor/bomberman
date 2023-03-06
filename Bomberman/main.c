@@ -30,6 +30,7 @@
 #define VELINIMIGO 1.5f
 #define CORINIMIGO RED
 #define NINIMIGOS 3
+#define DANO 1
 
 //PASSOS
 #define MIN_PASSOS 20
@@ -46,6 +47,8 @@
 
 //OUTROS
 #define INVERTE -1
+#define TRUE 1
+#define FALSE 0
 
 typedef struct
 {
@@ -77,6 +80,7 @@ typedef struct
     int passos;
     int passosMax;
     short status; //vivo ou morto
+
 } INIMIGO;
 
 void geraVelInimigo(INIMIGO *inimigo)
@@ -154,6 +158,19 @@ int checaColisaoBombermanInimigos(INIMIGO listaInimigos[], int ninimigos, Rectan
     }
     return 0;
 
+}
+
+
+int checkColisaoPlayerInimigo(INIMIGO listaInimigos[],int numeroInmigos, Rectangle bombermanRet,BOMBERMAN *bomberman)
+{
+    int i;
+    for(i=0;i<numeroInmigos;i++)
+    {
+        if(CheckCollisionCircleRec(listaInimigos[numeroInmigos].pos,TAMANHOINIMIGO,bombermanRet))
+        {
+            bomberman->vidas=-DANO;
+        }
+    }
 }
 
 int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int direcao)
@@ -513,6 +530,9 @@ int main(void)
 
         //Atualiza a posicao dos inimigos
         movimentaInimigos(listaInimigos, NINIMIGOS, mapa, blocos);
+
+        //Checa colisão
+        checkColisaoPlayerInimigo(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
 
         //----------------------------------------------------------------------------------
 
