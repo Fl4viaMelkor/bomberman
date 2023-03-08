@@ -1,4 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
+
 
 //LINHAS E COLUNAS
 #define NLINHAS 27
@@ -18,6 +21,7 @@
 #define LARGURAMAPA NLINHAS*TAMANHOBLOCOS
 #define ALTURAMAPA NCOLUNAS*TAMANHOBLOCOS
 #define CORMAPA GREEN
+#define CORMAPA2 VIOLET
 
 //BOMBERMAN
 #define LARGURABOMBERMAN 30
@@ -29,7 +33,7 @@
 #define TAMANHOINIMIGO 17
 #define VELINIMIGO 1.5f
 #define CORINIMIGO RED
-#define NINIMIGOS 3
+#define NINIMIGOS 1
 #define DANO 1
 
 //PASSOS
@@ -142,6 +146,7 @@ void geraInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa, Rectangle b
         listaInimigos[l].pos.y = posy_al;
         listaInimigos[l].passos = 0;
         listaInimigos[l].passosMax = GetRandomValue(MIN_PASSOS, MAX_PASSOS);
+
     }
 }
 
@@ -161,10 +166,12 @@ int checaColisaoBombermanInimigos(INIMIGO listaInimigos[], int ninimigos, Rectan
 }
 
 
-int checkColisaoPlayerInimigo(INIMIGO listaInimigos[],int numeroInmigos, Rectangle bombermanRet,BOMBERMAN *bomberman)
+
+
+int checkColisaoPlayerInimigo1(INIMIGO listaInimigos[],int numeroInmigos, Rectangle bombermanRet,BOMBERMAN *bomberman)
 {
     int i;
-    for(i=0;i<numeroInmigos;i++)
+    for(i=0; i<numeroInmigos; i++)
     {
         if(CheckCollisionCircleRec(listaInimigos[numeroInmigos].pos,TAMANHOINIMIGO,bombermanRet))
         {
@@ -172,6 +179,21 @@ int checkColisaoPlayerInimigo(INIMIGO listaInimigos[],int numeroInmigos, Rectang
         }
     }
 }
+
+///Outro jeito
+    int checkColisaoPlayerInimigo(INIMIGO listaInimigos[],int numeroInmigos,BOMBERMAN *bomberman)
+    {
+        int i;
+        for(i=0; i<numeroInmigos; i++)
+        {
+            if(listaInimigos[numeroInmigos].pos.x==bomberman->pos.x && listaInimigos[numeroInmigos].pos.y==bomberman->pos.y)
+            {
+                bomberman->vidas=-DANO;
+                printf("COlidu");
+            }
+        }
+    }
+
 
 int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int direcao)
 {
@@ -362,12 +384,12 @@ int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
 
 //---Talvez usar
 
-  //void fechajogo
-  //{
-    //while(BOMBERMAN bomberman.vida>0)
-    //{
-      //  (!WindowShouldClose)
-    //}
+//void fechajogo
+//{
+//while(BOMBERMAN bomberman.vida>0)
+//{
+//  (!WindowShouldClose)
+//}
 //}
 //---------------------
 
@@ -532,7 +554,8 @@ int main(void)
         movimentaInimigos(listaInimigos, NINIMIGOS, mapa, blocos);
 
         //Checa colisão
-        checkColisaoPlayerInimigo(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
+        checkColisaoPlayerInimigo1(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
+        printf("VIDA: %d",bomberman.vidas);
 
         //----------------------------------------------------------------------------------
 
@@ -545,6 +568,7 @@ int main(void)
         ClearBackground(CORFUNDO);
 
         //Desenha o mapa
+        //DrawRectangleGradientH(mapa.pos.x, mapa.pos.y, LARGURAMAPA,ALTURAMAPA, MAROON, GOLD);
         DrawRectangleV(mapa.pos, mapa.tamanho, CORMAPA);
 
         //Desenha os blocos
