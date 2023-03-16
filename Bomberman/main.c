@@ -53,6 +53,16 @@
 #define INVERTE -1
 #define TRUE 1
 #define FALSE 0
+#define TABELASCORE 10
+
+
+
+
+typedef struct
+{
+    int score;
+} SCORE;
+
 
 typedef struct
 {
@@ -60,7 +70,10 @@ typedef struct
     Vector2 tamanho;
     int fase;
     int vidas;
+    SCORE score;
 } BOMBERMAN;
+
+
 
 typedef struct
 {
@@ -86,6 +99,8 @@ typedef struct
     short status; //vivo ou morto
 
 } INIMIGO;
+
+
 
 void geraVelInimigo(INIMIGO *inimigo)
 {
@@ -164,8 +179,6 @@ int checaColisaoBombermanInimigos(INIMIGO listaInimigos[], int ninimigos, Rectan
     return 0;
 
 }
-
-
 
 
 int checkColisaoPlayerInimigo1(INIMIGO listaInimigos[],int numeroInmigos, Rectangle bombermanRet,BOMBERMAN *bomberman)
@@ -382,14 +395,35 @@ int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
 
 }
 
-//---Talvez usar
+//---pontuação
+    void SalvaPontucao(SCORE tabela())
+    {
+        int quant = 11;
+        FILE *arq = fopen("score.txt","wb");
+        if(arq)
+        {
+            fwrite(tabela,sizeof(SCORE),quant,arq);
+        }
+        else{"Não foi possível abrir o arquivo";}
+        fclose(arq);
+    }
 
-//void fechajogo
-//{
-//while(BOMBERMAN bomberman.vida>0)
-//{
-//  (!WindowShouldClose)
-//}
+    void LerdoArquivo(SCORE tabela())
+    {
+        FILE *arq = fopen("score.txt","rb");
+        if(arq)
+        {
+            fread(tabela, sizeof(SCORE), TABELASCORE, arq);
+            fclose(arq);
+
+        }
+        else
+        {
+            printf("Erro ao abrir score");
+        }
+    }
+
+
 //}
 //---------------------
 
@@ -515,7 +549,8 @@ int main(void)
         },
         { LARGURABOMBERMAN, ALTURABOMBERMAN },
         fase, //fase inicial
-        vida //vida inicial
+        vida, //vida inicial
+        0
     };
 
     //define a estrutura retangulo do BOMBERMAN para testar a colisão
@@ -530,6 +565,9 @@ int main(void)
     //gera os INIMIGOS
     geraInimigos(listaInimigos, NINIMIGOS, mapa, blocos);
 
+    //Score
+    SCORE tabeladescore[TABELASCORE+1];
+
     //--------------------------------------------------------------------------------------
 
     //--------------------------------------------------------------------------------------
@@ -537,7 +575,7 @@ int main(void)
     // Loop de Jogo (continua enquanto o usuario nao clicar "ESC" e enquanto o bomberman nao morrer para um inimigo
     //--------------------------------------------------------------------------------------
 
-    while (!WindowShouldClose() && bomberman.vidas>0)
+    while (!WindowShouldClose())
     {
 
         // Atualização da tela do jogo
@@ -556,6 +594,21 @@ int main(void)
         //Checa colisão
         checkColisaoPlayerInimigo1(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
         printf("VIDA: %d",bomberman.vidas);
+        if(bomberman.vidas=0)
+        {
+            char op;
+            DrawText("Deseja continuar?", 10,10,20, PURPLE);
+            scanf("%c",&op);
+            switch(op)
+            {
+                case 1:
+                    LerdoArquivo(tabeladescore);
+                    //OrganizaTabela
+                    SalvaPontucao(tabeladescore);
+                    break;
+
+            }
+        }
 
         //----------------------------------------------------------------------------------
 
