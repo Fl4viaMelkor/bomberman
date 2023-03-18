@@ -28,6 +28,7 @@
 #define ALTURABOMBERMAN 30
 #define VELBOMBERMAN 1.5f
 #define CORBOMBERMAN BROWN
+#define VIDAS 3
 
 //INIMIGOS
 #define TAMANHOINIMIGO 17
@@ -165,20 +166,6 @@ void geraInimigos(INIMIGO listaInimigos[], int ninimigos, MAPA mapa, Rectangle b
     }
 }
 
-int checaColisaoBombermanInimigos(INIMIGO listaInimigos[], int ninimigos, Rectangle bombermanRet)
-{
-    int l = 0;
-    while(l < ninimigos && !CheckCollisionCircleRec(listaInimigos[l].pos, TAMANHOINIMIGO, bombermanRet))
-    {
-        l++;
-    }
-    if(l < ninimigos)
-    {
-        return 1;
-    }
-    return 0;
-
-}
 
 
 int checkColisaoPlayerInimigo1(INIMIGO listaInimigos[],int numeroInmigos, Rectangle bombermanRet,BOMBERMAN *bomberman)
@@ -186,26 +173,15 @@ int checkColisaoPlayerInimigo1(INIMIGO listaInimigos[],int numeroInmigos, Rectan
     int i;
     for(i=0; i<numeroInmigos; i++)
     {
-        if(CheckCollisionCircleRec(listaInimigos[numeroInmigos].pos,TAMANHOINIMIGO,bombermanRet))
+        if(CheckCollisionCircleRec(listaInimigos[i].pos, TAMANHOINIMIGO, bombermanRet))
         {
-            bomberman->vidas=-DANO;
+            bomberman->vidas = bomberman->vidas - DANO;
         }
     }
 }
 
 ///Outro jeito
-    int checkColisaoPlayerInimigo(INIMIGO listaInimigos[],int numeroInmigos,BOMBERMAN *bomberman)
-    {
-        int i;
-        for(i=0; i<numeroInmigos; i++)
-        {
-            if(listaInimigos[numeroInmigos].pos.x==bomberman->pos.x && listaInimigos[numeroInmigos].pos.y==bomberman->pos.y)
-            {
-                bomberman->vidas=-DANO;
-                printf("COlidu");
-            }
-        }
-    }
+
 
 
 int checaColisaoBombermanBlocos(Rectangle blocos[], Rectangle bombermanRet, int direcao)
@@ -516,6 +492,9 @@ int main(void)
     // Inicialização
     //--------------------------------------------------------------------------------------
 
+    int fase = 1;
+
+
     InitWindow(LARGURATELA, ALTURATELA, "Bomberman");
     SetTargetFPS(FPS);
 
@@ -540,7 +519,6 @@ int main(void)
     //--------------------------------------------------------------------------------------
 
     //define o BOMBERMAN e seus dados
-    int vida=3,fase=1;
     BOMBERMAN bomberman =
     {
         {
@@ -549,9 +527,10 @@ int main(void)
         },
         { LARGURABOMBERMAN, ALTURABOMBERMAN },
         fase, //fase inicial
-        vida, //vida inicial
+        VIDAS, //vida inicial
         0
     };
+
 
     //define a estrutura retangulo do BOMBERMAN para testar a colisão
     Rectangle bombermanRet = { bomberman.pos.x, bomberman.pos.y, bomberman.tamanho.x, bomberman.tamanho.y };
@@ -575,9 +554,11 @@ int main(void)
     // Loop de Jogo (continua enquanto o usuario nao clicar "ESC" e enquanto o bomberman nao morrer para um inimigo
     //--------------------------------------------------------------------------------------
 
+
+
     while (!WindowShouldClose())
     {
-
+        int vidaNum = bomberman.vidas;
         // Atualização da tela do jogo
         //----------------------------------------------------------------------------------
 
@@ -593,8 +574,10 @@ int main(void)
 
         //Checa colisão
         checkColisaoPlayerInimigo1(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
-        printf("VIDA: %d",bomberman.vidas);
-        if(bomberman.vidas=0)
+
+
+        printf("\n VIDA: %d", bomberman.vidas);
+        if(bomberman.vidas == 0)
         {
             char op;
             DrawText("Deseja continuar?", 10,10,20, PURPLE);
