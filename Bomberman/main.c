@@ -398,7 +398,7 @@ int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
 //---pontuação
     void SalvaPontucao(SCORE tabela[])
     {
-        int quant = 11;
+        int quant = 1;
         FILE *arq = fopen("score.txt","wb");
         if(arq)
         {
@@ -408,7 +408,7 @@ int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
         fclose(arq);
     }
 
-    void LerdoArquivo(SCORE tabela())
+    void LerdoArquivo(SCORE tabela[])
     {
         FILE *arq = fopen("score.txt","rb");
         if(arq)
