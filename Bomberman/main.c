@@ -29,6 +29,7 @@
 #define VELBOMBERMAN 1.5f
 #define CORBOMBERMAN BROWN
 #define VIDAS 3
+#define NOME 30
 
 //INIMIGOS
 #define TAMANHOINIMIGO 17
@@ -59,6 +60,7 @@
 
 
 
+
 typedef struct
 {
     int score;
@@ -72,6 +74,8 @@ typedef struct
     int fase;
     int vidas;
     SCORE score;
+    char nome[NOME];
+
 } BOMBERMAN;
 
 
@@ -176,6 +180,11 @@ int checkColisaoPlayerInimigo1(INIMIGO listaInimigos[],int numeroInmigos, Rectan
         if(CheckCollisionCircleRec(listaInimigos[i].pos, TAMANHOINIMIGO, bombermanRet))
         {
             bomberman->vidas = bomberman->vidas - DANO;
+            if(bomberman->vidas>0)
+            {
+                bomberman->pos.x =(GetScreenWidth()/2) - (LARGURABOMBERMAN/2) + TAMANHOBLOCOS;
+                bomberman->pos.y = (GetScreenHeight()/2) - (ALTURABOMBERMAN/2);
+            }
         }
     }
 }
@@ -371,33 +380,52 @@ int checaColisaoInimigoBlocos(Rectangle blocos[], INIMIGO inimigo, int direcao)
 
 }
 
+
 //---pontuação
-    void SalvaPontucao(SCORE tabela[])
+void SalvaPontucao(SCORE tabela[])
+{
+    int quant = 1;
+    FILE *arq = fopen("score.txt","wb");
+    if(arq)
     {
-        int quant = 1;
-        FILE *arq = fopen("score.txt","wb");
-        if(arq)
-        {
-            fwrite(tabela,sizeof(SCORE),quant,arq);
-        }
-        else{"Não foi possível abrir o arquivo";}
+        fwrite(tabela,sizeof(SCORE),quant,arq);
+    }
+    else {"Não foi possível abrir o arquivo";}
+    fclose(arq);
+}
+
+void LerdoArquivo(SCORE tabela[])
+{
+    FILE *arq = fopen("score.txt","rb");
+    if(arq)
+    {
+        fread(tabela, sizeof(SCORE), TABELASCORE, arq);
         fclose(arq);
-    }
+        return 1;
 
-    void LerdoArquivo(SCORE tabela[])
+    }
+    else
     {
-        FILE *arq = fopen("score.txt","rb");
-        if(arq)
-        {
-            fread(tabela, sizeof(SCORE), TABELASCORE, arq);
-            fclose(arq);
-
-        }
-        else
-        {
-            printf("Erro ao abrir score");
-        }
+        printf("Erro ao abrir score");
+        return 0;
     }
+}
+
+void OrdenaHighscore(SCORE tabela[])
+{
+    int i;
+}
+
+void Scorefinal(BOMBERMAN *player, SCORE tabela[])
+{
+    player->score.score = (player->score.score * player->fase) /GetFrameTime()*1000;
+    tabela[TABELASCORE+1].score = player->score.score;
+}
+
+//-------------
+
+//
+
 
 
 //}
@@ -556,7 +584,7 @@ int main(void)
 
 
 
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() &&(!(IsKeyPressed(KEY_ESCAPE))))
     {
         int vidaNum = bomberman.vidas;
         // Atualização da tela do jogo
@@ -575,8 +603,6 @@ int main(void)
         //Checa colisão
         checkColisaoPlayerInimigo1(listaInimigos,NINIMIGOS,bombermanRet,&bomberman);
 
-
-        printf("\n VIDA: %d", bomberman.vidas);
         if(bomberman.vidas == 0)
         {
             char op;
@@ -584,11 +610,12 @@ int main(void)
             scanf("%c",&op);
             switch(op)
             {
-                case 1:
-                    LerdoArquivo(tabeladescore);
-                    //OrganizaTabela
-                    SalvaPontucao(tabeladescore);
-                    break;
+            case 1:
+                {
+                LerdoArquivo(tabeladescore);
+                //OrganizaTabela
+                SalvaPontucao(tabeladescore);
+                }break;
 
             }
         }
