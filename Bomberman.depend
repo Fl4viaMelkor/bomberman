@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1676417260 source:c:\users\berna\onedrive\documentos\bernardo\ufrgs\algoritmos e programação\bomberman\main.c
+	"raylib.h"
+
+1676432816 source:\\homes\bczietolie\downloads\bomberman\bomberman\main.c
+	"raylib.h"
+
+1676938746 source:c:\users\berna\downloads\bomberman\bomberman\main.c
+	"raylib.h"
+
+1677105049 source:c:\users\berna\onedrive\documentos\bernardo\ufrgs\algoritmos e programação\bomberman\bomberman\main.c
+	"raylib.h"
+
+1679281941 source:c:\users\biade\documents\github\bomberman\bomberman\main.c
+	<stdio.h>
+	<stdlib.h>
+	"raylib.h"
+
